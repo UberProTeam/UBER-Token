@@ -55,7 +55,7 @@ contract BasicToken is ERC20 {
   * @return An uint256 representing the amount owned by the passed address.
   */
 
-    function balanceOf(address _owner) constant returns (uint256 balance) {
+    function balanceOf(address _owner) view returns (uint256 balance) {
     return balances[_owner];
   }
 
@@ -78,7 +78,7 @@ contract BasicToken is ERC20 {
    * @param _spender address The address which will spend the funds.
    * @return A uint256 specifing the amount of tokens still avaible for the spender.
    */
-  function allowance(address _owner, address _spender) constant returns (uint256 remaining) {
+  function allowance(address _owner, address _spender) view returns (uint256 remaining) {
     return allowed[_owner][_spender];
   }
 
