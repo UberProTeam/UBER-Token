@@ -42,10 +42,18 @@ contract UberToken is BasicToken {
 
     }  
 
-    function transferOwnership(address _newFounderAddress) returns(bool) {
+    function transferOwnership(address _newFounderAddress) public returns(bool) {
         require(msg.sender == founderAddress);
         founderAddress = _newFounderAddress;
         OwnershipTransfered(now,_newFounderAddress);
+        return true;
+    }
+
+    function burn() public returns(bool) {
+        require(msg.sender == crowdsaleAddress);
+        uint256 burnAmount = balances[crowdsaleAddress];
+        totalSupply = totalSupply.sub(burnAmount);
+        balances[crowdsaleAddress] = 0;
         return true;
     }
 

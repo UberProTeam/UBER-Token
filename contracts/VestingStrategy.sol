@@ -1,8 +1,8 @@
-pragma solidity ^0.4.18;
+ pragma solidity ^0.4.18;
 
 import './lib/safeMath.sol';
 
-contract Vesting {
+contract VestingStrategy {
 
     using SafeMath for uint256;
 
@@ -11,7 +11,7 @@ contract Vesting {
     address[] public listOfTeamAdd;
     address[] public listOfMMAdd;
 
-    bool private isAddressAdded = false;
+    bool private isTeamAddressAdded = false;
     bool private isMMAddressAdded = false;
     uint256 public vestingPeriod;
 
@@ -26,12 +26,12 @@ contract Vesting {
     }
 
     function addTeamAddress(address[] _listOfTeamAdd) onlyFounder public returns(bool) {
-        require(isteamAddressAdded = false);
+        require(isTeamAddressAdded = false);
         require(_listOfTeamAdd.length != 0);
         for (uint i = 0; i<_listOfTeamAdd.length; ++i) {
             listOfTeamAdd[i] = _listOfTeamAdd[i];
         }
-        isteamAddressAdded = !isteamAddressAdded;
+        isTeamAddressAdded = !isTeamAddressAdded;
         return true;
     }
 
@@ -46,7 +46,7 @@ contract Vesting {
     }
 
     function releaseTokenToTeam() onlyFounder public returns(bool) {
-        require(now >=  v )
+       // require(now >=  v );
     }
 
 
