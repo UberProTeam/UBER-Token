@@ -69,6 +69,7 @@ contract UberCrowdsale {
     }
 
     function endPresale() onlyOperator public {
+        require(isTokenSet == true);
         require(isPresaleActive == true);
         require(isGapActive == false);
         isPresaleActive = !isPresaleActive;
@@ -105,7 +106,7 @@ contract UberCrowdsale {
             if (now >= startPresaleDate && now <= startPresaleDate + 1 weeks) {
                 return 50;
             }
-            if (now > startPresaleDate + 1 weeks && now <= startPresaleDate + 3 weeks) {
+            if (now > startPresaleDate + 1 weeks && now <= startPresaleDate + 4 weeks) {
                 return 40;
             }
         }
@@ -138,12 +139,12 @@ contract UberCrowdsale {
     returns (bool) 
     {
         require(isTokenSet == true);
-        require(MAX_INVESTMENT_GOAL <= ethRaised + msg.value);
+        require(MAX_INVESTMENT_GOAL >= ethRaised + msg.value);
         uint256 tokenAmount;
         if (getState() == State.Presale) {
             require(msg.value >= MIN_PRESALE);
             tokenAmount = getTokenAmount(msg.value);
-            require(presaleAllotment <= soldPresaleToken + tokenAmount);
+            require(presaleAllotment >= soldPresaleToken + tokenAmount);
             require(fundTransfer(msg.value));
             require(tokenSold(_investorAddress, tokenAmount));
             soldPresaleToken = soldPresaleToken.add(tokenAmount);
@@ -152,7 +153,7 @@ contract UberCrowdsale {
         if (getState() == State.Crowdsale) {
             require(msg.value >= MIN_CROWDSALE);
             tokenAmount = getTokenAmount(msg.value);
-            require(crowdsaleAllotment <= soldCrowdsaleToken + tokenAmount);
+            require(crowdsaleAllotment >= soldCrowdsaleToken + tokenAmount);
             require(fundTransfer(msg.value));
             require(tokenSold(_investorAddress, tokenAmount));
             soldCrowdsaleToken = soldCrowdsaleToken.add(tokenAmount);
