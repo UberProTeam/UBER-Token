@@ -49,6 +49,7 @@ contract VestingStrategy {
     }
 
     function releaseTokenToTeam() onlyFounder public returns(bool) {
+        require(isTokenSet == true);
         if (now >= finalSlotTimestamp) {
             require(token.transfer(teamAddress, slotAmount));
         }
@@ -65,6 +66,7 @@ contract VestingStrategy {
     }
 
     function releaseTokenToMarketing() onlyFounder public returns(bool) {
+        require(isTokenSet == true);
         if (now >= firstSlotTimestamp) {
             require(token.transfer(marketingAddress, (slotAmount * 2)));
             return true;
