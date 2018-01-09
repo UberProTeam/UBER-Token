@@ -1,6 +1,7 @@
 const VESTING = artifacts.require('VestingStrategy.sol');
 const UBER = artifacts.require('UberToken.sol');
 const Utils = require('./helpers/Utils');
+const time = require('./helpers/time');
 const BigNumber = require('bignumber.js');
 
 
@@ -52,17 +53,20 @@ contract("VestingStrategy", (accounts) => {
         assert.equal( await Utils.timeDifference(finalSlotTimestamp, thirdSlotTimestamp), 15552000); // 15552000 = 180 days
         
         let vestingPeriod = new BigNumber(await vesting.vestingPeriod()).toNumber();
-        assert.equal( await Utils.timeDifference(vestingPeriod, currentTime), 63072000); // 63072000 = 2*365 = 730 days
+        assert.closeTo( await Utils.timeDifference(vestingPeriod, currentTime), 63072000, 3); // 63072000 = 2*365 = 730 days
         
     });
 
-    it('setTokenAddress: token address will be set', async() => {
+    it('setTokenAddress: token address will be set, only contract address will be allowed', async() => {
         let vesting = await VESTING.new(teamAddress, marketingAddress);
         let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
         await vesting.setTokenAddress(uber.address, {from: founder}); 
+        assert.notEqual(web3.eth.getCode(uber.address),'0x0'); // Must be a contract address       
+        let tokenAddr = await vesting.tokenAddress();
+        assert.equal(tokenAddr.toString(), uber.address);
     });
 
-    it('setTokenAddress: try to set token address using address different from founder (Should fail)', async() => {
+    it('setTokenAddress: trying to set token address with a non-founder address (Should fail)', async() => {
         let vesting = await VESTING.new(teamAddress, marketingAddress);
         try{
             let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
@@ -87,8 +91,277 @@ contract("VestingStrategy", (accounts) => {
         }        
     });
 
+    it('releaseTokenToMarketing: token assigned to marketing address will be released', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder}); 
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToMarketing({from: founder});
+        //console.log(web3.eth.getBlock('latest').timestamp); 
+        let _balance1 = await uber
+                        .balanceOf
+                        .call(marketingAddress);
+        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*3375000); 
+    });
+
+    it('releaseTokenToMarketing: trying to release marketing token without setting token address (will fail)', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder); 
+        await time.increaseTime(15552000);
+        try{
+            await vesting.releaseTokenToMarketing({from: founder});
+        }catch(error){
+            //console.log(error);
+            return Utils.ensureException(error);
+        }
+    });
+
+    it('releaseTokenToMarketing: trying to release marketing token before 180 days (will fail)', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder});       
+        
+        await vesting.releaseTokenToMarketing({from: founder});
+        let _balance1 = await uber
+                    .balanceOf
+                    .call(marketingAddress);
+        //Token Balance of marketing Address should be zero
+        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 0);        
+    });
+
+    it('releaseTokenToMarketing: trying to release marketing token with a non-founder address (will fail)', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder); 
+        await time.increaseTime(15552000); //180 days
+        try{
+            await vesting.releaseTokenToMarketing({from: holder1});
+        }catch(error){
+            //console.log(error);
+            return Utils.ensureException(error);
+        }
+    });
+    
+    it('releaseTokenToTeam: team token release in after each slot of 180 days', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder}); 
+        await time.increaseTime(15552000);  //180 days  
+        await vesting.releaseTokenToTeam({from: founder});
+        let firstSlotTimestamp = new BigNumber(await vesting.firstSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, firstSlotTimestamp, 3); 
+        let _balance1 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3375000); 
+
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let secondSlotTimestamp = new BigNumber(await vesting.secondSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, secondSlotTimestamp, 3);
+        let _balance2 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*3375000); 
+
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let thirdSlotTimestamp = new BigNumber(await vesting.thirdSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, thirdSlotTimestamp, 3); 
+        let _balance3 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*3375000); 
+
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let finalSlotTimestamp = new BigNumber(await vesting.finalSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, finalSlotTimestamp, 3); 
+        let _balance4 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+    });
+
+    it('releaseTokenToTeam: team token release in after 2nd, 3rd, 4th slot of 180 days', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder}); 
+
+        await time.increaseTime(2*15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let secondSlotTimestamp = new BigNumber(await vesting.secondSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, secondSlotTimestamp, 3);
+        let _balance2 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*3375000); 
+
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let thirdSlotTimestamp = new BigNumber(await vesting.thirdSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, thirdSlotTimestamp, 3); 
+        let _balance3 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*3375000); 
+
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let finalSlotTimestamp = new BigNumber(await vesting.finalSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, finalSlotTimestamp, 3); 
+        let _balance4 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+    });
+
+
     
 
+    it('releaseTokenToTeam: team token release in after 1st, 3rd, 4th slot of 180 days', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder}); 
+
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let firstSlotTimestamp = new BigNumber(await vesting.firstSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, firstSlotTimestamp, 3);
+        let _balance2 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3375000); 
+
+        await time.increaseTime(2*15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let thirdSlotTimestamp = new BigNumber(await vesting.thirdSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, thirdSlotTimestamp, 3); 
+        let _balance3 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*3375000); 
+
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let finalSlotTimestamp = new BigNumber(await vesting.finalSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, finalSlotTimestamp, 3); 
+        let _balance4 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+    });
+
+    it('releaseTokenToTeam: team token release in after 1st, 4th slot of 180 days', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder});  
+
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let firstSlotTimestamp = new BigNumber(await vesting.firstSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, firstSlotTimestamp, 3); 
+        let _balance = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3375000); 
+
+        await time.increaseTime(3*15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let finalSlotTimestamp = new BigNumber(await vesting.finalSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, finalSlotTimestamp, 3); 
+        let _balance4 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+    });
+
+    it('releaseTokenToTeam: team token release in after 2nd, 4th slot of 180 days', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder});  
+
+        await time.increaseTime(2*15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let secondSlotTimestamp = new BigNumber(await vesting.secondSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, secondSlotTimestamp, 3); 
+        let _balance2 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*3375000); 
+
+        await time.increaseTime(2*15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let finalSlotTimestamp = new BigNumber(await vesting.finalSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, finalSlotTimestamp, 3); 
+        let _balance4 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+    });
+
+    it('releaseTokenToTeam: team token release in after 3rd, 4th slot of 180 days', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder});  
+
+        await time.increaseTime(3*15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let thirdSlotTimestamp = new BigNumber(await vesting.thirdSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, thirdSlotTimestamp, 3); 
+        let _balance3 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*3375000); 
+
+        await time.increaseTime(15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let finalSlotTimestamp = new BigNumber(await vesting.finalSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, finalSlotTimestamp, 3); 
+        let _balance4 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+    });
+    
+    it('releaseTokenToTeam: team token release in after 4th slot of 180 days', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder});  
+
+        await time.increaseTime(4*15552000);       
+        await vesting.releaseTokenToTeam({from: founder});
+        let finalSlotTimestamp = new BigNumber(await vesting.finalSlotTimestamp()).toNumber();
+        assert.closeTo(web3.eth.getBlock('latest').timestamp, finalSlotTimestamp, 3); 
+        let _balance4 = await uber
+                        .balanceOf
+                        .call(teamAddress);
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+    });
+
+    it('releaseTokenToMarketing: trying to release team token before 180 days (will fail)', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        await vesting.setTokenAddress(uber.address, {from: founder});       
+        
+        await vesting.releaseTokenToTeam({from: founder});
+        let _balance1 = await uber
+                    .balanceOf
+                    .call(teamAddress);
+        //Token Balance of team Address should be zero as function called before 180 days duration
+        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 0);        
+    });
+
+    it('releaseTokenToMarketing: trying to release team token with a non-founder address (will fail)', async() => {
+        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder); 
+        await time.increaseTime(15552000); //180 days
+        try{
+            await vesting.releaseTokenToMarketing({from: holder1});
+        }catch(error){
+            //console.log(error);
+            return Utils.ensureException(error);
+        }
+    });
 });
 
 

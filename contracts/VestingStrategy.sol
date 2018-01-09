@@ -19,6 +19,7 @@ contract VestingStrategy {
     uint256 public thirdSlotTimestamp;
     uint256 public finalSlotTimestamp;
     uint256 public vestingPeriod;
+    uint256 public tokenReleased = 0;
     uint256 public slotAmount = 3375000 * 10 ** 18;
 
     bool private isTokenSet = false;
@@ -51,16 +52,43 @@ contract VestingStrategy {
     function releaseTokenToTeam() onlyFounder public returns(bool) {
         require(isTokenSet == true);
         if (now >= finalSlotTimestamp) {
+            if (tokenReleased == 0) {
+                require(token.transfer(teamAddress, 4*slotAmount));
+                tokenReleased = tokenReleased.add(4*slotAmount);
+            } else if ((tokenReleased).div(slotAmount) == 1) {
+                require(token.transfer(teamAddress,3*slotAmount));
+                tokenReleased = tokenReleased.add(3*slotAmount);
+            } else if ((tokenReleased).div(slotAmount) == 2) {
+                require(token.transfer(teamAddress,2*slotAmount));
+                tokenReleased = tokenReleased.add(2*slotAmount);
+            } else if ((tokenReleased).div(slotAmount) == 3) {
+                require(token.transfer(teamAddress,slotAmount));
+                tokenReleased = tokenReleased.add(slotAmount);
+            } 
+        }else if (now >= thirdSlotTimestamp) {
+            if (tokenReleased == 0) {
+                require(token.transfer(teamAddress, 3*slotAmount));
+                tokenReleased = tokenReleased.add(3*slotAmount);
+            } else if ((tokenReleased).div(slotAmount) == 1) {
+                require(token.transfer(teamAddress,2*slotAmount));
+                tokenReleased = tokenReleased.add(2*slotAmount);
+            } else if ((tokenReleased).div(slotAmount) == 2) {
+                require(token.transfer(teamAddress,slotAmount));
+                tokenReleased = tokenReleased.add(slotAmount);
+            }                
+        }else if (now >= secondSlotTimestamp) {
+            if (tokenReleased == 0) {
+                require(token.transfer(teamAddress, 2*slotAmount));
+                tokenReleased = tokenReleased.add(2*slotAmount);
+            } else {
+                require(token.transfer(teamAddress,slotAmount));
+                tokenReleased = tokenReleased.add(slotAmount);
+            }                 
+        }else if (now >= firstSlotTimestamp) {
             require(token.transfer(teamAddress, slotAmount));
-        }
-        if (now >= thirdSlotTimestamp) {
-            require(token.transfer(teamAddress, slotAmount));
-        }
-        if (now >= secondSlotTimestamp) {
-            require(token.transfer(teamAddress, slotAmount));
-        }
-        if (now >= firstSlotTimestamp) {
-            require(token.transfer(teamAddress, slotAmount));
+            tokenReleased = tokenReleased.add(slotAmount);
+        } else {
+            return false;
         }
         return true;
     }
@@ -73,7 +101,5 @@ contract VestingStrategy {
         }
         return false;
     }
-
-
 
 }
