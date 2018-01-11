@@ -14,7 +14,7 @@ contract UberCrowdsale {
     uint256 public MAX_INVESTMENT_GOAL = 100000 ether;
     uint256 public ethRaised;
     uint256 public presaleAllotment = 6750000 * 10 ** 18;
-    uint256 public crowdsaleAllotment = 108000000;
+    uint256 public crowdsaleAllotment = 108000000 * 10 ** 18;
     uint256 public soldPresaleToken = 0;
     uint256 public soldCrowdsaleToken = 0;
 

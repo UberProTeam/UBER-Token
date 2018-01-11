@@ -30,8 +30,6 @@ contract("VestingStrategy", (accounts) => {
 
     it("Verify constructors",async()=>{
         let vesting = await VESTING.new(teamAddress, marketingAddress);
-
-        let currentTime = Math.floor(new Date().getTime()/1000);
         
         let marketAddr = await vesting.marketingAddress();
         assert.equal(marketAddr.toString(), marketingAddress);
@@ -53,7 +51,7 @@ contract("VestingStrategy", (accounts) => {
         assert.equal( await Utils.timeDifference(finalSlotTimestamp, thirdSlotTimestamp), 16416000); // 16416000 = 190 days
         
         let vestingPeriod = new BigNumber(await vesting.vestingPeriod()).toNumber();
-        assert.closeTo( await Utils.timeDifference(vestingPeriod, currentTime), 63072000, 3); // 63072000 = 2*365 = 730 days
+        assert.closeTo( await Utils.timeDifference(vestingPeriod, firstSlotTimestamp), 47520000, 3); // 63072000 = 2*365 = 730 days
         
     });
 
