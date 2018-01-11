@@ -36,7 +36,7 @@ contract VestingStrategy {
         firstSlotTimestamp = now + 6 * 30 days;
         secondSlotTimestamp = firstSlotTimestamp + 6 * 30 days;
         thirdSlotTimestamp = secondSlotTimestamp + 6 * 30 days;
-        finalSlotTimestamp = thirdSlotTimestamp + 6 * 30 days;
+        finalSlotTimestamp = thirdSlotTimestamp + 6 * 30 days + 10 days; // To cover the month days difference
         vestingPeriod = now + 2 * 365 days;   // 3 months for crowdsale end + 2 years of vesting
     }
 

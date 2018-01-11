@@ -61,19 +61,29 @@ contract UberCrowdsale {
         isPresaleActive = !isPresaleActive;
     } 
 
+    function setTokenAddress(address _tokenAddress) onlyOperator public returns (bool) {
+        require(_tokenAddress != address(0));
+        require(isTokenSet == false);
+        token = UberToken(_tokenAddress);
+        tokenAddress = _tokenAddress;
+        isTokenSet = !isTokenSet;
+        return true;
+    }
+
+    function endPresale() onlyOperator public {
+        require(isTokenSet == true);
+        require(now > endPresaleDate);
+        require(isPresaleActive == true);
+        require(isGapActive == false);
+        isPresaleActive = !isPresaleActive;
+        isGapActive = !isGapActive;
+    }
+
     function activeCrowdsale() onlyOperator public {
         require(isGapActive == true);
         startCrowdsaleDate = now;
         endCrowdsaleDate = now + 4 weeks;
         isCrowdsaleActive = !isCrowdsaleActive;
-    }
-
-    function endPresale() onlyOperator public {
-        require(isTokenSet == true);
-        require(isPresaleActive == true);
-        require(isGapActive == false);
-        isPresaleActive = !isPresaleActive;
-        isGapActive = !isGapActive;
     }
 
     function changeMinInvestment(uint256 _newMinInvestment) onlyOperator public {
@@ -88,11 +98,11 @@ contract UberCrowdsale {
 
     function getState() view public returns(State) {
         if (isPresaleActive == true) {
-            require(now > startPresaleDate && now <= endPresaleDate);
+            require(now >= startPresaleDate && now <= endPresaleDate);
             return State.Presale;
         }
         if (isCrowdsaleActive == true) {
-            require(now > startCrowdsaleDate && now <= endCrowdsaleDate);
+            require(now >= startCrowdsaleDate && now <= endCrowdsaleDate);
             return State.Crowdsale;
         }
         if (isGapActive == true) {
@@ -124,14 +134,7 @@ contract UberCrowdsale {
         }
     }
 
-    function setTokenAddress(address _tokenAddress) onlyOperator public returns (bool) {
-        require(_tokenAddress != address(0));
-        require(isTokenSet == false);
-        token = UberToken(_tokenAddress);
-        tokenAddress = _tokenAddress;
-        isTokenSet = !isTokenSet;
-        return true;
-    }
+   
 
     function buyTokens(address _investorAddress)
     public 
