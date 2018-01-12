@@ -61,8 +61,7 @@ contract("Crowdsale", (accounts) => {
         try{
             await Uber.setTokenAddress(UberToken.address, {from: holder1});        
         }catch (error) {
-           //console.log(error);
-           return Utils.ensureException(error);
+            Utils.ensureException(error);
         }        
     });
     
@@ -75,12 +74,11 @@ contract("Crowdsale", (accounts) => {
             let UberToken2 = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
             await Uber.setTokenAddress(UberToken2.address, {from: operatorAddress});
         }catch (error) {
-            //console.log(error);
-            return Utils.ensureException(error);
+             Utils.ensureException(error);
         }        
     });
 
-    it('endPresale: presale will be ended, gap will be started', async() => {
+    it('endPresale: should gap start after ending the presale', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
          await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
@@ -95,8 +93,7 @@ contract("Crowdsale", (accounts) => {
         try{
             await Uber.endPresale({from: operatorAddress});        
         }catch (error) {
-           //console.log(error);
-           return Utils.ensureException(error);
+            Utils.ensureException(error);
         }        
     });
 
@@ -107,8 +104,7 @@ contract("Crowdsale", (accounts) => {
         try{
             await Uber.endPresale({from: operatorAddress});        
         }catch (error) {
-           //console.log(error);
-           return Utils.ensureException(error);
+            Utils.ensureException(error);
         }        
     });
     
@@ -120,12 +116,11 @@ contract("Crowdsale", (accounts) => {
         try{
             await Uber.endPresale({from: holder1});        
         }catch (error) {
-           //console.log(error);
-           return Utils.ensureException(error);
+            Utils.ensureException(error);
         }        
     });
 
-    it('activeCrowdsale: Crowdsale will be started after Gap', async() => {
+    it('activeCrowdsale: Should start crowdsale after gap', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
@@ -146,8 +141,7 @@ contract("Crowdsale", (accounts) => {
         try{
             await Uber.activeCrowdsale({from: operatorAddress});
         } catch(error){
-            //console.log(error);
-            return Utils.ensureException(error);
+            Utils.ensureException(error);
         }      
     });
 
@@ -162,41 +156,105 @@ contract("Crowdsale", (accounts) => {
         try{
             await Uber.activeCrowdsale({from: holder1});
         } catch(error){
-            //console.log(error);
-            return Utils.ensureException(error);
+            Utils.ensureException(error);
         }      
     });
 
-    it('changeMinInvestment: Minimum investment for presale & crowdsale will be changed', async() => {
+    it('changeMinInvestment: Should change minimum investment for presale & crowdsale', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        assert.strictEqual((await Uber.MIN_PRESALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
-        assert.strictEqual((await Uber.MIN_CROWDSALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(), .1);
+        
+        assert.strictEqual((await Uber
+                .MIN_PRESALE())
+                .dividedBy(
+                new BigNumber(10)
+                .pow(18)
+                ).toNumber(),
+                1);
+        assert.strictEqual((await Uber
+                .MIN_CROWDSALE())
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                ).toNumber(), 
+                .1);
+        
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
-        await Uber.changeMinInvestment(new BigNumber(2).times(new BigNumber(10).pow(18)), {from: operatorAddress});
-        assert.strictEqual((await Uber.MIN_PRESALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(),2);
+        
+        await Uber.changeMinInvestment(
+                new BigNumber(2)
+                .times(
+                    new BigNumber(10)
+                    .pow(18)
+                ), 
+                {
+                    from: operatorAddress
+                });
+        assert.strictEqual((await Uber
+            .MIN_PRESALE()
+            ).dividedBy(
+                 new BigNumber(10)
+                .pow(18)
+            ).toNumber(),
+            2);
+       
         await time.increaseTime(2419200+100); // 28 days        
         await Uber.endPresale({from: operatorAddress});        
         assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
+        
         await Uber.activeCrowdsale({from: operatorAddress});  
         assert.strictEqual((await Uber.getState()).toNumber(), 2); //2 = Crowdsale
-        await Uber.changeMinInvestment(new BigNumber(.3).times(new BigNumber(10).pow(18)), {from: operatorAddress});
-        assert.strictEqual((await Uber.MIN_CROWDSALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(), .3);
+        
+        await Uber.changeMinInvestment(
+            new BigNumber(.3)
+            .times(new BigNumber(10)
+            .pow(18)
+            ), 
+            {
+                from: operatorAddress
+            });
+        assert.strictEqual((await Uber
+            .MIN_CROWDSALE()
+            ).dividedBy(
+                new BigNumber(10).pow(18)
+            ).toNumber(), 
+            .3);
         
     });
     
     it('changeMinInvestment: trying to change minimum investment for presale using a non-operator address (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        assert.strictEqual((await Uber.MIN_PRESALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
-        assert.strictEqual((await Uber.MIN_CROWDSALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(), .1);
+        assert.strictEqual((await Uber
+            .MIN_PRESALE()
+            ).dividedBy(
+                new BigNumber(10)
+                .pow(18)
+            ).toNumber(),
+            1);
+        assert.strictEqual((await Uber
+            .MIN_CROWDSALE()
+            )
+            .dividedBy(
+                new BigNumber(10)
+                .pow(18)
+            ).toNumber(), 
+            .1);
+
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+        
         try{
-            await Uber.changeMinInvestment(new BigNumber(2).times(new BigNumber(10).pow(18)), {from: holder1});
+            await Uber.changeMinInvestment(new BigNumber(2)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), {
+                from: holder1
+            });
         }catch (error){
-            //console.log(error);
             return Utils.ensureException(error);
         }
         
@@ -204,53 +262,141 @@ contract("Crowdsale", (accounts) => {
 
     it('changeMinInvestment: trying to change minimum investment for crowdsale using a non-operator address (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        assert.strictEqual((await Uber.MIN_PRESALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
-        assert.strictEqual((await Uber.MIN_CROWDSALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(), .1);
+        assert.strictEqual((await Uber
+                .MIN_PRESALE()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(),
+                1);
+        assert.strictEqual((await Uber
+                .MIN_CROWDSALE()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                .1);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+       
         await time.increaseTime(2419200+100); // 28 days        
         await Uber.endPresale({from: operatorAddress});        
-        assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
+       
+        assert.strictEqual((await Uber
+                .getState()
+                )
+                .toNumber(), 
+                1); //1 = Gap 
+        
         await Uber.activeCrowdsale({from: operatorAddress});  
         assert.strictEqual((await Uber.getState()).toNumber(), 2); //2 = Crowdsale
+        
         try{
-            await Uber.changeMinInvestment(new BigNumber(.3).times(new BigNumber(10).pow(18)), {from: holder1});
+            await Uber.changeMinInvestment(
+                new BigNumber(.3)
+                .times(
+                    new BigNumber(10)
+                    .pow(18)
+                ), 
+                {
+                    from: holder1
+                });
         }catch (error){
-            //console.log(error);
-            return Utils.ensureException(error);
+                Utils.ensureException(error);
         }        
     });
 
     it('changeMinInvestment: trying to change minimum investment for crowdsale during GAP time (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        assert.strictEqual((await Uber.MIN_PRESALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(),1);
-        assert.strictEqual((await Uber.MIN_CROWDSALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(), .1);
+        
+        assert.strictEqual((await Uber
+                .MIN_PRESALE()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                    )
+                .toNumber(),
+                1);
+        assert.strictEqual((await Uber
+                .MIN_CROWDSALE()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                .1);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+        
         await time.increaseTime(2419200+100); // 28 days        
         await Uber.endPresale({from: operatorAddress});        
         assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
-        await Uber.changeMinInvestment(new BigNumber(.3).times(new BigNumber(10).pow(18)), {from: operatorAddress});
+       
+        await Uber.changeMinInvestment(new BigNumber(.3)
+                .times(
+                    new BigNumber(10)
+                    .pow(18)
+                ), 
+                {
+                    from: operatorAddress
+                });
         // Minimum Investment will same sa before i.e. 0.1 ETH
-        assert.strictEqual((await Uber.MIN_CROWDSALE()).dividedBy(new BigNumber(10).pow(18)).toNumber(), .1);
+        assert.strictEqual((await Uber
+            .MIN_CROWDSALE()
+            )
+            .dividedBy(
+                new BigNumber(10)
+                .pow(18)
+            )
+            .toNumber(), 
+            .1);
     });
 
 
     it('buyTokens: buying tokens in different weeks of presale and crowdsale by transferring ether', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+        
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
-        assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale 
+        assert.strictEqual((await Uber
+            .getState()
+            )
+            .toNumber(), 
+            0); //0 = Presale 
         await web3.eth.sendTransaction({
             from: holder1,
             to: Uber.address,
             gas:300000,
             value: web3.toWei('1', 'Ether')
         });
-        assert.equal((await Uber.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(), 1);
-        assert.equal((await UberToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(), 1500);
+        assert.equal((await Uber
+                .ethRaised()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                    )
+                .toNumber(), 
+                1);
+        assert.equal((await UberToken
+                .balanceOf
+                .call(holder1)
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                1500
+            );
      
         await time.increaseTime(7*24*60*60+100); // 7 days  = 2nd week        
         await web3.eth.sendTransaction({
@@ -259,12 +405,31 @@ contract("Crowdsale", (accounts) => {
                 gas:300000,
                 value: web3.toWei('1', 'Ether')
             });
-        assert.equal((await Uber.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(), 2);
-        assert.equal((await UberToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(), 1400);
+        assert.equal((await Uber
+                .ethRaised()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                2);
+        assert.equal((await UberToken
+                .balanceOf
+                .call(holder2)
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                1400);
         
         await time.increaseTime(3*7*24*60*60); // To make sure current block timestamp is greater than end date         
+        
         await Uber.endPresale({from: operatorAddress});        
         assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
+        
         await Uber.activeCrowdsale({from: operatorAddress});  
         assert.strictEqual((await Uber.getState()).toNumber(), 2); //2 = Crowdsale
 
@@ -274,8 +439,27 @@ contract("Crowdsale", (accounts) => {
             gas:300000,
             value: web3.toWei('1', 'Ether')
         });
-        assert.equal((await Uber.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(), 3);
-        assert.equal((await UberToken.balanceOf.call(holder3)).dividedBy(new BigNumber(10).pow(18)).toNumber(), 1200);
+        assert.equal((await Uber
+                .ethRaised()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                3
+            );
+        assert.equal((await UberToken
+                .balanceOf
+                .call(holder3)
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                1200
+            );
         
         await time.increaseTime(7*24*60*60+100); // 7 days  = 2nd week of crowdsale       
         await web3.eth.sendTransaction({
@@ -284,8 +468,27 @@ contract("Crowdsale", (accounts) => {
                 gas:300000,
                 value: web3.toWei('1', 'Ether')
             });
-        assert.equal((await Uber.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(), 4);
-        assert.equal((await UberToken.balanceOf.call(holder4)).dividedBy(new BigNumber(10).pow(18)).toNumber(), 1100);
+        assert.equal((await Uber
+                .ethRaised()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                4
+            );
+        assert.equal((await UberToken
+                .balanceOf
+                .call(holder4)
+            )
+            .dividedBy(
+                new BigNumber(10)
+                .pow(18)
+            )
+            .toNumber(), 
+            1100
+        );
         
         await time.increaseTime(7*24*60*60+100); // 7 days  = 3rd week of crowdsale       
         await web3.eth.sendTransaction({
@@ -294,8 +497,25 @@ contract("Crowdsale", (accounts) => {
                 gas:300000,
                 value: web3.toWei('1', 'Ether')
             });
-        assert.equal((await Uber.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(), 5);
-        assert.equal((await UberToken.balanceOf.call(holder3)).dividedBy(new BigNumber(10).pow(18)).toNumber(), 2250);
+        assert.equal((await Uber
+                .ethRaised()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                ).toNumber(), 
+            5);
+        assert.equal((await UberToken
+                .balanceOf
+                .call(holder3)
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                2250
+            );
         
         await time.increaseTime(7*24*60*60+100); // 7 days  = 4th week of crowdsale       
         await web3.eth.sendTransaction({
@@ -304,23 +524,67 @@ contract("Crowdsale", (accounts) => {
                 gas:300000,
                 value: web3.toWei('1', 'Ether')
             });
-        assert.equal((await Uber.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(), 6);
-        assert.equal((await UberToken.balanceOf.call(holder4)).dividedBy(new BigNumber(10).pow(18)).toNumber(), 2100);
+        assert.equal((await Uber
+                .ethRaised()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                6
+            );
+        assert.equal((await UberToken
+            .balanceOf
+            .call(holder4)
+            )
+            .dividedBy(
+                new BigNumber(10)
+                .pow(18)
+            )
+            .toNumber(), 
+            2100
+        );
     });
 
     it('buyTokens: trying to buy tokens at the time of GAP (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+       
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
-        assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale 
+        assert.strictEqual((await Uber
+                .getState()
+                )
+                .toNumber(), 
+                0
+                ); //0 = Presale 
         await web3.eth.sendTransaction({
             from: holder1,
             to: Uber.address,
             gas:300000,
             value: web3.toWei('1', 'Ether')
         });
-        assert.equal((await Uber.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(), 1);
-        assert.equal((await UberToken.balanceOf.call(holder1)).dividedBy(new BigNumber(10).pow(18)).toNumber(), 1500);
+        assert.equal((await Uber
+                .ethRaised()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                1
+            );
+        assert.equal((await UberToken
+                .balanceOf
+                .call(holder1)
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                1500
+            );
      
         await time.increaseTime(7*24*60*60+100); // 7 days  = 2nd week        
         await web3.eth.sendTransaction({
@@ -329,8 +593,28 @@ contract("Crowdsale", (accounts) => {
                 gas:300000,
                 value: web3.toWei('1', 'Ether')
             });
-        assert.equal((await Uber.ethRaised()).dividedBy(new BigNumber(10).pow(18)).toNumber(), 2);
-        assert.equal((await UberToken.balanceOf.call(holder2)).dividedBy(new BigNumber(10).pow(18)).toNumber(), 1400);
+        
+        assert.equal((await Uber
+                .ethRaised()
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                    ).
+                    toNumber(), 
+                    2
+                );
+        assert.equal((await UberToken
+                .balanceOf
+                .call(holder2)
+                )
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                1400
+            );
         
         await time.increaseTime(3*7*24*60*60); // To make sure current block timestamp is greater than end date         
         await Uber.endPresale({from: operatorAddress});        
@@ -344,8 +628,7 @@ contract("Crowdsale", (accounts) => {
             value: web3.toWei('1', 'Ether')
             });
         }catch(error){
-            //console.log(error);
-            return Utils.ensureException(error);
+                Utils.ensureException(error);
         }
         
     });
@@ -361,16 +644,17 @@ contract("Crowdsale", (accounts) => {
             value: web3.toWei('1', 'Ether')
             });
         }catch(error){
-            //console.log(error);
-            return Utils.ensureException(error);
+            Utils.ensureException(error);
         }
     });
 
     it('buyTokens: trying to buy tokens by investing Ether less than set minimum amount while presale (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+       
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+        
         try{
             await web3.eth.sendTransaction({
                 from: holder1,
@@ -379,21 +663,25 @@ contract("Crowdsale", (accounts) => {
                 value: web3.toWei('0.95', 'Ether')   //less than 1 ETH
             });
         }catch(error){
-            //console.log(error);
-            return Utils.ensureException(error);
+             Utils.ensureException(error);
         }
     });
 
     it('buyTokens: trying to buy tokens by investing Ether less than set minimum amount while crowdsale (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+        
         await time.increaseTime(2419200+100); // 28 days        
         await Uber.endPresale({from: operatorAddress});        
+        
         assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
         await Uber.activeCrowdsale({from: operatorAddress});  
+        
         assert.strictEqual((await Uber.getState()).toNumber(), 2); //2 = Crowdsale
+        
         try{
             await web3.eth.sendTransaction({
                 from: holder1,
@@ -402,41 +690,58 @@ contract("Crowdsale", (accounts) => {
                 value: web3.toWei('0.09', 'Ether') //less than 0.1 ETH
             });
         }catch(error){
-            //console.log(error);
-            return Utils.ensureException(error);
+            Utils.ensureException(error);
         }        
     });
 
     it('endCrowdfund: Crowdsale will be ended, token will be burnt', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+        
         await time.increaseTime(2419200+100); // 28 days        
         await Uber.endPresale({from: operatorAddress});        
+        
         assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
         await Uber.activeCrowdsale({from: operatorAddress});  
+        
         assert.strictEqual((await Uber.getState()).toNumber(), 2); //2 = Crowdsale
         await time.increaseTime(2419200+100); // 28 days        
+        
         await Uber.endCrowdfund(true, 0, {from: operatorAddress});
         let _balance = await UberToken
                         .balanceOf
                         .call(Uber.address);
-        assert.strictEqual(_balance.dividedBy(new BigNumber(10).pow(18)).toNumber(), 0);               
+        assert.strictEqual(_balance
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                0
+            );               
     });
 
     it('endCrowdfund: Old Crowdsale will be ended, tokens will be transferred to new crowdsale address', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+        
         await time.increaseTime(2419200+100); // 28 days        
         await Uber.endPresale({from: operatorAddress});        
+        
         assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
         await Uber.activeCrowdsale({from: operatorAddress});  
+        
         assert.strictEqual((await Uber.getState()).toNumber(), 2); //2 = Crowdsale
         await time.increaseTime(2419200+100); // 28 days        
+        
         await Uber.endCrowdfund(false, newCrowdsaleAddress, {from: operatorAddress});
+        
         let _balance = await UberToken
                         .balanceOf
                         .call(newCrowdsaleAddress);
@@ -446,27 +751,33 @@ contract("Crowdsale", (accounts) => {
     it('endCrowdfund: trying to end crowdsale before crowdsale end date (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+        
         await time.increaseTime(2419200+100); // 28 days        
+        
         await Uber.endPresale({from: operatorAddress});        
         assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
+        
         await Uber.activeCrowdsale({from: operatorAddress});  
         assert.strictEqual((await Uber.getState()).toNumber(), 2); //2 = Crowdsale
+        
         await time.increaseTime(2419200-1000); // Before 28 days        
         try{
             await Uber.endCrowdfund(true, 0, {from: operatorAddress}); 
         }catch(error){
-            //console.log(error);
-            return Utils.ensureException(error);
+             Utils.ensureException(error);
         }             
     });
 
     it('endCrowdfund: trying to end crowdsale using a non-operator address (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+        
         await time.increaseTime(2419200+100); // 28 days        
         await Uber.endPresale({from: operatorAddress});        
         assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
@@ -476,22 +787,27 @@ contract("Crowdsale", (accounts) => {
         try{
             await Uber.endCrowdfund(true, 0, {from: holder1}); 
         }catch(error){
-            //console.log(error);
-            return Utils.ensureException(error);
+            Utils.ensureException(error);
         }             
     });
 
     it('buyTokens: buying tokens after end of the crowdsale (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
         let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
+        
         await time.increaseTime(2419200+100); // 28 days        
+        
         await Uber.endPresale({from: operatorAddress});        
         assert.strictEqual((await Uber.getState()).toNumber(), 1); //1 = Gap 
+        
         await Uber.activeCrowdsale({from: operatorAddress});  
         assert.strictEqual((await Uber.getState()).toNumber(), 2); //2 = Crowdsale
+        
         await time.increaseTime(2419200+100); // 28 days        
+        
         await Uber.endCrowdfund(true, 0, {from: operatorAddress});
         let _balance = await UberToken
                         .balanceOf
@@ -505,8 +821,7 @@ contract("Crowdsale", (accounts) => {
                 value: web3.toWei('1', 'Ether') 
             });
         }catch(error){
-            //console.log(error);
-            return Utils.ensureException(error);
+            Utils.ensureException(error);
         } 
     });
 

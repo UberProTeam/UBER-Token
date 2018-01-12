@@ -75,14 +75,21 @@ contract("UBERToken", (accounts) => {
                     value: web3.toWei('1', 'Ether')
                 });
         } catch (error) {
-            //console.log(error);
-            return Utils.ensureException(error);
+                Utils.ensureException(error);
         }
     });
 
     it('transfer: should transfer 10000 to holder1 from owner', async() => {
         let uber = await UBER.new(crowdsaleAddress, vestingAddress, founder);
-        await uber.transfer(holder1, new BigNumber(10000).times(new BigNumber(10).pow(18)), {from: crowdsaleAddress});
+        await uber.transfer(holder1, 
+            new BigNumber(10000)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: crowdsaleAddress
+            });
         let balance = await uber
             .balanceOf
             .call(holder1);
@@ -92,16 +99,46 @@ contract("UBERToken", (accounts) => {
      it('transfer: first should transfer 10000 to holder1 from owner then holder1 transfers 1000 to holder2',
     async() => {
         let uber = await UBER.new(crowdsaleAddress, vestingAddress, founder);
-        await uber.transfer(holder1, new BigNumber(10000).times(new BigNumber(10).pow(18)), {from: crowdsaleAddress});
+        await uber.transfer(holder1,
+                new BigNumber(10000)
+                .times(
+                    new BigNumber(10)
+                    .pow(18)
+                ), 
+                {
+                    from: crowdsaleAddress
+                });
         let balance = await uber
             .balanceOf
             .call(holder1);
-        assert.strictEqual(balance.dividedBy(new BigNumber(10).pow(18)).toNumber(), 10000);
-        await uber.transfer(holder2, new BigNumber(1000).times(new BigNumber(10).pow(18)), {from: holder1});
+        assert.strictEqual(balance
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                )
+                .toNumber(), 
+                10000
+            );
+        await uber.transfer(holder2,
+                new BigNumber(1000)
+                .times(
+                    new BigNumber(10)
+                    .pow(18)
+                ), 
+                {
+                    from: holder1
+                });
         let acc2Balance = await uber
             .balanceOf
             .call(holder2);
-        assert.strictEqual(acc2Balance.dividedBy(new BigNumber(10).pow(18)).toNumber(), 1000);
+        assert.strictEqual(acc2Balance
+                .dividedBy(
+                    new BigNumber(10)
+                    .pow(18)
+                    )
+                .toNumber(), 
+                1000
+                );
         let acc1Balance = await uber
             .balanceOf
             .call(holder1);
@@ -110,8 +147,24 @@ contract("UBERToken", (accounts) => {
 
     it('approve: holder1 should approve 1000 to holder2', async() => {
         let uber = await UBER.new(crowdsaleAddress, vestingAddress, founder);
-        await uber.transfer(holder1, new BigNumber(10000).times(new BigNumber(10).pow(18)), {from: crowdsaleAddress});
-        await uber.approve(holder2, new BigNumber(1000).times(new BigNumber(10).pow(18)), {from: holder1});
+        await uber.transfer(holder1, 
+                new BigNumber(10000)
+                .times(
+                    new BigNumber(10)
+                    .pow(18)
+                ), 
+                {
+                    from: crowdsaleAddress
+                });
+        await uber.approve(holder2,
+                new BigNumber(1000)
+                .times(
+                    new BigNumber(10)
+                    .pow(18)
+                ), 
+                {
+                    from: holder1
+                });
         let _allowance = await uber
             .allowance
             .call(holder1, holder2);
@@ -120,17 +173,49 @@ contract("UBERToken", (accounts) => {
 
     it('approve: holder1 should approve 1000 to holder2 & withdraws 200 once', async() => {
         let uber = await UBER.new(crowdsaleAddress, vestingAddress, founder);
-        await uber.transfer(holder1, new BigNumber(2000).times(new BigNumber(10).pow(18)), {from: crowdsaleAddress});
-        await uber.approve(holder2, new BigNumber(1000).times(new BigNumber(10).pow(18)), {from: holder1})
+        await uber.transfer(holder1,
+             new BigNumber(2000)
+             .times(
+                 new BigNumber(10)
+                 .pow(18)
+                ), 
+                {
+                    from: crowdsaleAddress
+                });
+        await uber.approve(holder2,
+             new BigNumber(1000)
+             .times(
+                 new BigNumber(10)
+                 .pow(18)
+                ), 
+                {
+                    from: holder1
+                })
         let _allowance1 = await uber
             .allowance
             .call(holder1, holder2);
-        assert.strictEqual(_allowance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 1000);
-        await uber.transferFrom(holder1, holder3, new BigNumber(200).times(new BigNumber(10).pow(18)), {from: holder2});
+        assert.strictEqual(_allowance1
+            .dividedBy(
+                new BigNumber(10)
+                .pow(18)
+                )
+                .toNumber(), 1000
+                );
+        await uber.transferFrom(holder1,
+             holder3, 
+             new BigNumber(200)
+             .times(
+                 new BigNumber(10)
+                 .pow(18)
+            ), 
+            {
+                from: holder2
+            });
         let balance = await uber
             .balanceOf
             .call(holder3);
         assert.strictEqual(balance.dividedBy(new BigNumber(10).pow(18)).toNumber(), 200);
+        
         let _allowance2 = await uber
             .allowance
             .call(holder1, holder2);
@@ -143,16 +228,44 @@ contract("UBERToken", (accounts) => {
 
     it('approve: holder1 should approve 1000 to holder2 & withdraws 200 twice', async() => {
         let uber = await UBER.new(crowdsaleAddress, vestingAddress, founder);
-        await uber.transfer(holder1, new BigNumber(2000).times(new BigNumber(10).pow(18)), {from: crowdsaleAddress});
-        await uber.approve(holder2, new BigNumber(1000).times(new BigNumber(10).pow(18)), {from: holder1});
+        await uber.transfer(holder1, 
+                new BigNumber(2000)
+                .times(
+                    new BigNumber(10)
+                    .pow(18)
+                ), 
+                {
+                    from: crowdsaleAddress
+                });
+        await uber.approve(holder2, 
+            new BigNumber(1000).
+            times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: holder1}
+            );
+        
         let _allowance1 = await uber
             .allowance
             .call(holder1, holder2);
         assert.strictEqual(_allowance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 1000);
-        await uber.transferFrom(holder1, holder3, new BigNumber(200).times(new BigNumber(10).pow(18)), {from: holder2});
+        
+        await uber.transferFrom(holder1,
+             holder3, 
+             new BigNumber(200)
+             .times(
+                 new BigNumber(10)
+                 .pow(18)
+                ), 
+                {
+                    from: holder2
+                });
         let _balance1 = await uber
             .balanceOf
             .call(holder3);
+        
         assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 200);
         let _allowance2 = await uber
             .allowance
@@ -162,11 +275,23 @@ contract("UBERToken", (accounts) => {
             .balanceOf
             .call(holder1);
         assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 1800);
-        await uber.transferFrom(holder1, holder4, new BigNumber(200).times(new BigNumber(10).pow(18)), {from: holder2});
+        
+        await uber.transferFrom(holder1,
+            holder4, 
+            new BigNumber(200).
+            times(
+                 new BigNumber(10)
+                 .pow(18)
+            ), 
+            {
+                    from: holder2
+            });
+        
         let _balance3 = await uber
             .balanceOf
             .call(holder4);
         assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 200);
+        
         let _allowance3 = await uber
             .allowance
             .call(holder1, holder2);
@@ -190,13 +315,39 @@ contract("UBERToken", (accounts) => {
     it('approves: holder1 approves holder2 of 1000 & withdraws 800 & 500 (2nd tx will be checked for failure)',
     async() => {
         let uber = await UBER.new(crowdsaleAddress, vestingAddress, founder);
-        await uber.transfer(holder1, new BigNumber(2000).times(new BigNumber(10).pow(18)), {from: crowdsaleAddress});
-        await uber.approve(holder2, new BigNumber(1000).times(new BigNumber(10).pow(18)), {from: holder1});
+        await uber.transfer(holder1,
+            new BigNumber(2000)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: crowdsaleAddress
+            });
+        await uber.approve(holder2, 
+            new BigNumber(1000)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: holder1
+            });
         let _allowance1 = await uber
             .allowance
             .call(holder1, holder2);
+        
         assert.strictEqual(_allowance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 1000);
-        await uber.transferFrom(holder1, holder3, new BigNumber(800).times(new BigNumber(10).pow(18)), {from: holder2});
+        await uber.transferFrom(holder1,
+            holder3,
+            new BigNumber(800)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: holder2
+            });
               
         let _balance1 = await uber
             .balanceOf
@@ -209,8 +360,19 @@ contract("UBERToken", (accounts) => {
         let _balance2 = await uber
             .balanceOf
             .call(holder1);
+        
         assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 1200);
-        let response2 = await uber.transferFrom(holder1, holder3, new BigNumber(500).times(new BigNumber(10).pow(18)), {from: holder2});
+        
+        let response2 = await uber.transferFrom(holder1,
+            holder3, 
+            new BigNumber(500)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: holder2
+            });
         assert.strictEqual(response2.logs.length, 0);
          
     });
@@ -225,27 +387,67 @@ contract("UBERToken", (accounts) => {
     it('transferFrom: Allow holder2 1000 to withdraw from holder1. Withdraw 800 and then approve 0 & attempt transfer',
     async() => {
         let uber = await UBER.new(crowdsaleAddress, vestingAddress, founder);
-        await uber.transfer(holder1, new BigNumber(2000).times(new BigNumber(10).pow(18)), {from: crowdsaleAddress});
-        await uber.approve(holder2, new BigNumber(1000).times(new BigNumber(10).pow(18)), {from: holder1});
+        
+        await uber.transfer(holder1, 
+            new BigNumber(2000)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: crowdsaleAddress
+            });
+        await uber.approve(holder2, 
+            new BigNumber(1000)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: holder1
+            });
+        
         let _allowance1 = await uber
             .allowance
             .call(holder1, holder2);
         assert.strictEqual(_allowance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 1000);
-        await uber.transferFrom(holder1, holder3, new BigNumber(200).times(new BigNumber(10).pow(18)), {from: holder2});
+        
+        await uber.transferFrom(holder1,
+            holder3,
+            new BigNumber(200)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: holder2
+            });
         let _balance1 = await uber
             .balanceOf
             .call(holder3);
         assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 200);
+        
         let _allowance2 = await uber
             .allowance
             .call(holder1, holder2);
         assert.strictEqual(_allowance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 800);
+        
         let _balance2 = await uber
             .balanceOf
             .call(holder1);
         assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 1800);
+        
         await uber.approve(holder2, 0, {from: holder1});
-        let response2 = await uber.transferFrom(holder1, holder3, new BigNumber(200).times(new BigNumber(10).pow(18)), {from: holder2});
+        let response2 = await uber.transferFrom(holder1, 
+            holder3,
+            new BigNumber(200)
+            .times(
+                new BigNumber(10)
+                .pow(18)
+            ), 
+            {
+                from: holder2
+            });
         assert.strictEqual(response2.logs.length, 0);
     });
 
