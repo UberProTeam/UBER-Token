@@ -7,7 +7,7 @@ contract UberCrowdsale {
 
     using SafeMath for uint256;
 
-    UberToken token;
+    UberToken public token;
     uint32 public tokenRate = 1000;
     uint256 public MIN_PRESALE = 1 ether;
     uint256 public MIN_CROWDSALE = 100 finney;

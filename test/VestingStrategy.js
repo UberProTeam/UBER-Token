@@ -55,7 +55,7 @@ contract("VestingStrategy", (accounts) => {
         
     });
 
-    it('setTokenAddress: token address will be set, only contract address will be allowed', async() => {
+    it('setTokenAddress: should set token address, only contract address will be allowed', async() => {
         let vesting = await VESTING.new(teamAddress, marketingAddress);
         let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
         await vesting.setTokenAddress(uber.address, {from: founder}); 
@@ -96,7 +96,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance1 = await uber
                         .balanceOf
                         .call(marketingAddress);
-        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*3375000); 
+        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2 * slotAmount); 
     });
 
     it('releaseTokenToMarketing: trying to release marketing token without setting token address (will fail)', async() => {
@@ -148,7 +148,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance1 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3375000); 
+        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), slotAmount); 
 
         await time.increaseTime(15552000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -158,7 +158,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance2 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*3375000); 
+        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*slotAmount); 
 
         await time.increaseTime(15552000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -168,7 +168,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance3 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*3375000); 
+        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*slotAmount); 
 
         await time.increaseTime(16416000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -178,7 +178,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance4 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*slotAmount); 
     });
 
     it('releaseTokenToTeam: team token release in after 2nd, 3rd, 4th slot of 180 days', async() => {
@@ -195,7 +195,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance2 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*3375000); 
+        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*slotAmount); 
 
         await time.increaseTime(15552000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -205,7 +205,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance3 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*3375000); 
+        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*slotAmount); 
 
         await time.increaseTime(16416000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -215,7 +215,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance4 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*slotAmount); 
     });
 
 
@@ -234,7 +234,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance2 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3375000); 
+        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), slotAmount); 
 
         await time.increaseTime(2*15552000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -244,7 +244,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance3 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*3375000); 
+        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*slotAmount); 
 
         await time.increaseTime(16416000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -254,7 +254,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance4 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*slotAmount); 
     });
 
     it('releaseTokenToTeam: team token release in after 1st, 4th slot of 180 days', async() => {
@@ -270,7 +270,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3375000); 
+        assert.strictEqual(_balance.dividedBy(new BigNumber(10).pow(18)).toNumber(), slotAmount); 
 
         await time.increaseTime(2*15552000 + 16416000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -280,7 +280,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance4 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*slotAmount); 
     });
 
     it('releaseTokenToTeam: team token release in after 2nd, 4th slot of 180 days', async() => {
@@ -296,7 +296,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance2 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*3375000); 
+        assert.strictEqual(_balance2.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2*slotAmount); 
 
         await time.increaseTime(15552000 + 16416000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -306,7 +306,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance4 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*slotAmount); 
     });
 
     it('releaseTokenToTeam: team token release in after 3rd, 4th slot of 180 days', async() => {
@@ -322,7 +322,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance3 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*3375000); 
+        assert.strictEqual(_balance3.dividedBy(new BigNumber(10).pow(18)).toNumber(), 3*slotAmount); 
 
         await time.increaseTime(16416000);       
         await vesting.releaseTokenToTeam({from: founder});
@@ -332,7 +332,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance4 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*slotAmount); 
     });
     
     it('releaseTokenToTeam: team token release in after 4th slot of 180 days', async() => {
@@ -348,7 +348,7 @@ contract("VestingStrategy", (accounts) => {
         let _balance4 = await uber
                         .balanceOf
                         .call(teamAddress);
-        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*3375000); 
+        assert.strictEqual(_balance4.dividedBy(new BigNumber(10).pow(18)).toNumber(), 4*slotAmount); 
     });
 
     it('releaseTokenToTeam: trying to release team token without setting token (will fail)', async() => {
