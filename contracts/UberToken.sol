@@ -23,23 +23,27 @@ contract UberToken is BasicToken {
     address public crowdsaleAddress;
     address public vestingContractAddress;
     address public founderAddress;
+    address public marketingAddress;
 
     event OwnershipTransfered(uint256 _timestamp, address _newFounderAddress);
 
-    function UberToken(address _crowdsaleAddress, address _vestingContract, address _founderAddress) public {
+    function UberToken(address _crowdsaleAddress, address _vestingContract, address _founderAddress, address _marketingAddress) public {
         tokenAllocToTeam = 13500000 * 10 ** 18;                              //10 % Allocation
         tokenAllocToCrowdsale = 114750000 * 10 ** 18;                        // 85 % Allocation 
         tokenAllocToMM = 6750000 * 10 ** 18;                                 // 5 % Allocation
 
+        // Address 
         crowdsaleAddress = _crowdsaleAddress;
         vestingContractAddress = _vestingContract;
         founderAddress = _founderAddress;
+        marketingAddress = _marketingAddress;
 
+        // Allocations
         balances[crowdsaleAddress] = tokenAllocToCrowdsale;
-        balances[vestingContractAddress] = tokenAllocToTeam.add(tokenAllocToMM);
+        balances[marketingAddress] = tokenAllocToMM;
+        balances[vestingContractAddress] = tokenAllocToTeam;
 
-        allocatedTokens = balances[crowdsaleAddress].add(balances[vestingContractAddress]);
-
+        allocatedTokens = balances[marketingAddress];
     }  
 
     function transferOwnership(address _newFounderAddress) public returns(bool) {

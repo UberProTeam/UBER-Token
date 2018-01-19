@@ -11,7 +11,6 @@ contract VestingStrategy {
     // Variable declaration
     address public founderAddress;
     address public teamAddress;
-    address public marketingAddress;
     address public tokenAddress;
 
     uint256 public firstSlotTimestamp;
@@ -29,8 +28,7 @@ contract VestingStrategy {
         _;
     }
 
-    function VestingStrategy(address _teamAddress, address _marketingAddress) public {
-        marketingAddress = _marketingAddress;
+    function VestingStrategy(address _teamAddress) public {
         teamAddress = _teamAddress;
         founderAddress = msg.sender;
         firstSlotTimestamp = now + 6 * 30 days;
@@ -91,15 +89,6 @@ contract VestingStrategy {
             return false;
         }
         return true;
-    }
-
-    function releaseTokenToMarketing() onlyFounder public returns(bool) {
-        require(isTokenSet == true);
-        if (now >= firstSlotTimestamp) {
-            require(token.transfer(marketingAddress, (slotAmount * 2)));
-            return true;
-        }
-        return false;
     }
 
 }
