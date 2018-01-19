@@ -11,6 +11,7 @@ contract("Crowdsale", (accounts) => {
     let operatorAddress;
     let beneficiaryAddress;
     let vestingAddress;
+    let marketingAddress;
     let founder;
     let newCrowdsaleAddress;
     let holder1;
@@ -29,6 +30,7 @@ contract("Crowdsale", (accounts) => {
         beneficiaryAddress = accounts[6];
         vestingAddress = accounts[7];
         newCrowdsaleAddress = accounts[8];
+        marketingAddress = accounts[9];
     });
 
     it("Verify constructors",async()=>{
@@ -48,7 +50,7 @@ contract("Crowdsale", (accounts) => {
 
    it('setTokenAddress: token address will be set, only contract address will be allowed', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress);
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress}); 
         assert.notEqual(web3.eth.getCode(UberToken.address),'0x0'); // Must be a contract address       
         let tokenAddr = await Uber.tokenAddress();
@@ -57,7 +59,7 @@ contract("Crowdsale", (accounts) => {
 
     it('setTokenAddress: trying to set token address with a non-operator address (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress);
         try{
             await Uber.setTokenAddress(UberToken.address, {from: holder1});        
         }catch (error) {
@@ -68,10 +70,10 @@ contract("Crowdsale", (accounts) => {
 
     it('setTokenAddress: should NOT let a operator address to set the token address when token is set (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress);
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         try{
-            let UberToken2 = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+            let UberToken2 = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress);
             await Uber.setTokenAddress(UberToken2.address, {from: operatorAddress});
         }catch (error) {
              Utils.ensureException(error);
@@ -80,7 +82,7 @@ contract("Crowdsale", (accounts) => {
 
     it('endPresale: should gap start after ending the presale', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
          await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
          await time.increaseTime(2419200+10); // 28 days
          assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale         
@@ -99,7 +101,7 @@ contract("Crowdsale", (accounts) => {
 
     it('endPresale: trying to end presale before end date (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         try{
             await Uber.endPresale({from: operatorAddress});        
@@ -110,7 +112,7 @@ contract("Crowdsale", (accounts) => {
     
     it('endPresale: trying to end presale after end date using a non-operator address (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         await time.increaseTime(2419200+10); // 28 days 
         try{
@@ -122,7 +124,7 @@ contract("Crowdsale", (accounts) => {
 
     it('activeCrowdsale: Should start crowdsale after gap', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         await time.increaseTime(2419200+100); // 28 days
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale         
@@ -134,7 +136,7 @@ contract("Crowdsale", (accounts) => {
 
     it('activeCrowdsale: trying to start crowdsale, without ending presale', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         await time.increaseTime(2419200+100); // 28 days
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale         
@@ -147,7 +149,7 @@ contract("Crowdsale", (accounts) => {
 
     it('activeCrowdsale: trying to start crowdsale, with  non-founder address', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         await time.increaseTime(2419200+100); // 28 days
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale 
@@ -178,7 +180,7 @@ contract("Crowdsale", (accounts) => {
                 ).toNumber(), 
                 .1);
         
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
@@ -242,7 +244,7 @@ contract("Crowdsale", (accounts) => {
             ).toNumber(), 
             .1);
 
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
         
@@ -280,7 +282,7 @@ contract("Crowdsale", (accounts) => {
                 )
                 .toNumber(), 
                 .1);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
        
@@ -332,7 +334,7 @@ contract("Crowdsale", (accounts) => {
                 )
                 .toNumber(), 
                 .1);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
         
@@ -363,7 +365,7 @@ contract("Crowdsale", (accounts) => {
 
     it('buyTokens: buying tokens in different weeks of presale and crowdsale by transferring ether', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress);
         
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber
@@ -549,7 +551,7 @@ contract("Crowdsale", (accounts) => {
 
     it('buyTokens: trying to buy tokens at the time of GAP (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress);
        
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber
@@ -635,7 +637,7 @@ contract("Crowdsale", (accounts) => {
 
     it('buyTokens: trying to buy tokens without setting token (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         try{
             await web3.eth.sendTransaction({
             from: holder1,
@@ -650,7 +652,7 @@ contract("Crowdsale", (accounts) => {
 
     it('buyTokens: trying to buy tokens by investing Ether less than set minimum amount while presale (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder);
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress);
        
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
@@ -669,7 +671,7 @@ contract("Crowdsale", (accounts) => {
 
     it('buyTokens: trying to buy tokens by investing Ether less than set minimum amount while crowdsale (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
@@ -696,7 +698,7 @@ contract("Crowdsale", (accounts) => {
 
     it('endCrowdfund: Crowdsale will be ended, token will be burnt', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
@@ -726,7 +728,7 @@ contract("Crowdsale", (accounts) => {
 
     it('endCrowdfund: Old Crowdsale will be ended, tokens will be transferred to new crowdsale address', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
@@ -750,7 +752,7 @@ contract("Crowdsale", (accounts) => {
 
     it('endCrowdfund: trying to end crowdsale before crowdsale end date (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
@@ -773,7 +775,7 @@ contract("Crowdsale", (accounts) => {
 
     it('endCrowdfund: trying to end crowdsale using a non-operator address (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
 
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  
@@ -793,7 +795,7 @@ contract("Crowdsale", (accounts) => {
 
     it('buyTokens: buying tokens after end of the crowdsale (will fail)', async() => {
         let Uber = await UBERCROWDSALE.new(operatorAddress, beneficiaryAddress);
-        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder); 
+        let UberToken = await UBERTOKEN.new(Uber.address, vestingAddress, founder, marketingAddress); 
         
         await Uber.setTokenAddress(UberToken.address, {from: operatorAddress});
         assert.strictEqual((await Uber.getState()).toNumber(), 0); //0 = Presale  

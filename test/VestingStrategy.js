@@ -23,16 +23,12 @@ contract("VestingStrategy", (accounts) => {
         holder2 = accounts[2];
         crowdsaleAddress = accounts[3];
         vestingAddress = accounts[4];
-        teamAddress = accounts[5];
-        marketingAddress = accounts[6];
-        
+        teamAddress = accounts[5];  
+        marketingAddress = accounts[6];      
     });
 
     it("Verify constructors",async()=>{
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        
-        let marketAddr = await vesting.marketingAddress();
-        assert.equal(marketAddr.toString(), marketingAddress);
+        let vesting = await VESTING.new(teamAddress);
 
         let teamAddr = await vesting.teamAddress();
         assert.equal(teamAddr.toString(), teamAddress);
@@ -56,8 +52,8 @@ contract("VestingStrategy", (accounts) => {
     });
 
     it('setTokenAddress: should set token address, only contract address will be allowed', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         await vesting.setTokenAddress(uber.address, {from: founder}); 
         assert.notEqual(web3.eth.getCode(uber.address),'0x0'); // Must be a contract address       
         let tokenAddr = await vesting.tokenAddress();
@@ -65,9 +61,9 @@ contract("VestingStrategy", (accounts) => {
     });
 
     it('setTokenAddress: trying to set token address with a non-founder address (Should fail)', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
+        let vesting = await VESTING.new(teamAddress);
         try{
-            let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+            let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
             await vesting.setTokenAddress(uber.address, {from: holder1});        
         }catch (error) {
             Utils.ensureException(error);
@@ -76,67 +72,20 @@ contract("VestingStrategy", (accounts) => {
     
 
     it('setTokenAddress: should NOT let a founder address to set the token address when token is set (will fail)', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber1 = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber1 = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         await vesting.setTokenAddress(uber1.address, {from: founder});
         try{
-            let uber2 = await UBER.new(crowdsaleAddress, vesting.address, founder);
+            let uber2 = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
             await vesting.setTokenAddress(uber2.address, {from: founder});
         }catch (error) {
                 Utils.ensureException(error);
         }        
-    });
-
-    it('releaseTokenToMarketing: token assigned to marketing address will be released', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
-        await vesting.setTokenAddress(uber.address, {from: founder}); 
-        await time.increaseTime(15552000);       
-        await vesting.releaseTokenToMarketing({from: founder});
-        let _balance1 = await uber
-                        .balanceOf
-                        .call(marketingAddress);
-        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 2 * slotAmount); 
-    });
-
-    it('releaseTokenToMarketing: trying to release marketing token without setting token address (will fail)', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder); 
-        await time.increaseTime(15552000);
-        try{
-            await vesting.releaseTokenToMarketing({from: founder});
-        }catch(error){
-            Utils.ensureException(error);
-        }
-    });
-
-    it('releaseTokenToMarketing: trying to release marketing token before 180 days (will fail)', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
-        await vesting.setTokenAddress(uber.address, {from: founder});       
-        
-        await vesting.releaseTokenToMarketing({from: founder});
-        let _balance1 = await uber
-                    .balanceOf
-                    .call(marketingAddress);
-        //Token Balance of marketing Address should be zero
-        assert.strictEqual(_balance1.dividedBy(new BigNumber(10).pow(18)).toNumber(), 0);        
-    });
-
-    it('releaseTokenToMarketing: trying to release marketing token with a non-founder address (will fail)', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder); 
-        await time.increaseTime(15552000); //180 days
-        try{
-            await vesting.releaseTokenToMarketing({from: holder1});
-        }catch(error){
-            Utils.ensureException(error);
-        }
-    });
+    });  
     
     it('releaseTokenToTeam: team token release in after each slot of 180 days', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         
         await vesting.setTokenAddress(uber.address, {from: founder}); 
         await time.increaseTime(15552000);  //180 days  
@@ -182,8 +131,8 @@ contract("VestingStrategy", (accounts) => {
     });
 
     it('releaseTokenToTeam: team token release in after 2nd, 3rd, 4th slot of 180 days', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         
         await vesting.setTokenAddress(uber.address, {from: founder}); 
         await time.increaseTime(2*15552000);       
@@ -222,8 +171,8 @@ contract("VestingStrategy", (accounts) => {
     
 
     it('releaseTokenToTeam: team token release in after 1st, 3rd, 4th slot of 180 days', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         
         await vesting.setTokenAddress(uber.address, {from: founder}); 
         await time.increaseTime(15552000);       
@@ -258,8 +207,8 @@ contract("VestingStrategy", (accounts) => {
     });
 
     it('releaseTokenToTeam: team token release in after 1st, 4th slot of 180 days', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         
         await vesting.setTokenAddress(uber.address, {from: founder});  
         await time.increaseTime(15552000);       
@@ -284,8 +233,8 @@ contract("VestingStrategy", (accounts) => {
     });
 
     it('releaseTokenToTeam: team token release in after 2nd, 4th slot of 180 days', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         
         await vesting.setTokenAddress(uber.address, {from: founder});  
         await time.increaseTime(2*15552000);       
@@ -310,8 +259,8 @@ contract("VestingStrategy", (accounts) => {
     });
 
     it('releaseTokenToTeam: team token release in after 3rd, 4th slot of 180 days', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         
         await vesting.setTokenAddress(uber.address, {from: founder});  
         await time.increaseTime(3*15552000);       
@@ -336,8 +285,8 @@ contract("VestingStrategy", (accounts) => {
     });
     
     it('releaseTokenToTeam: team token release in after 4th slot of 180 days', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         
         await vesting.setTokenAddress(uber.address, {from: founder});  
         await time.increaseTime(3*15552000 + 16416000);       
@@ -352,7 +301,7 @@ contract("VestingStrategy", (accounts) => {
     });
 
     it('releaseTokenToTeam: trying to release team token without setting token (will fail)', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress); 
+        let vesting = await VESTING.new(teamAddress); 
         await time.increaseTime(15552000); //180 days
         try{
             await vesting.releaseTokenToTeam({from: founder});
@@ -362,8 +311,8 @@ contract("VestingStrategy", (accounts) => {
     });
     
     it('releaseTokenToTeam: trying to release team token before 180 days (will fail)', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         await vesting.setTokenAddress(uber.address, {from: founder});       
         
         await vesting.releaseTokenToTeam({from: founder});
@@ -375,8 +324,8 @@ contract("VestingStrategy", (accounts) => {
     });
 
     it('releaseTokenToTeam: trying to release team token with a non-founder address (will fail)', async() => {
-        let vesting = await VESTING.new(teamAddress, marketingAddress);
-        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder);
+        let vesting = await VESTING.new(teamAddress);
+        let uber = await UBER.new(crowdsaleAddress, vesting.address, founder, marketingAddress);
         await vesting.setTokenAddress(uber.address, {from: founder}); 
         await time.increaseTime(15552000); //180 days
         try{
