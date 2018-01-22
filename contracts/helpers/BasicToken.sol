@@ -3,6 +3,12 @@ pragma solidity ^0.4.18;
 import './ERC20.sol';
 import '../lib/safeMath.sol';
 
+/**
+ *  SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/token/BasicToken.sol/>
+ *  Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *  Released under the MIT License (MIT)
+ */
+
 
 contract BasicToken is ERC20 {
     using SafeMath for uint256;

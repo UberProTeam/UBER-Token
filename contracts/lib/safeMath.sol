@@ -1,5 +1,10 @@
 pragma solidity ^0.4.18;
 
+/**
+ *  SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol/>
+ *  Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *  Released under the MIT License (MIT)
+ */
 
 /**
  * @title SafeMath
