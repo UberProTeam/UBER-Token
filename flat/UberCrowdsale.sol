@@ -1,6 +1,12 @@
 pragma solidity ^0.4.18;
 
 /**
+ *  SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol/>
+ *  Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *  Released under the MIT License (MIT)
+ */
+
+/**
  * @title SafeMath
  * @dev Math operations with safety checks that throw on error
  */
@@ -41,6 +47,13 @@ contract ERC20 {
   event Approval(address indexed owner, address indexed spender, uint256 value);
     
 }
+
+/**
+ *  SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/token/BasicToken.sol/>
+ *  Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *  Released under the MIT License (MIT)
+ */
+
 
 contract BasicToken is ERC20 {
     using SafeMath for uint256;
@@ -143,23 +156,27 @@ contract UberToken is BasicToken {
     address public crowdsaleAddress;
     address public vestingContractAddress;
     address public founderAddress;
+    address public marketingAddress;
 
     event OwnershipTransfered(uint256 _timestamp, address _newFounderAddress);
 
-    function UberToken(address _crowdsaleAddress, address _vestingContract, address _founderAddress) public {
+    function UberToken(address _crowdsaleAddress, address _vestingContract, address _founderAddress, address _marketingAddress) public {
         tokenAllocToTeam = 13500000 * 10 ** 18;                              //10 % Allocation
         tokenAllocToCrowdsale = 114750000 * 10 ** 18;                        // 85 % Allocation 
         tokenAllocToMM = 6750000 * 10 ** 18;                                 // 5 % Allocation
 
+        // Address 
         crowdsaleAddress = _crowdsaleAddress;
         vestingContractAddress = _vestingContract;
         founderAddress = _founderAddress;
+        marketingAddress = _marketingAddress;
 
+        // Allocations
         balances[crowdsaleAddress] = tokenAllocToCrowdsale;
-        balances[vestingContractAddress] = tokenAllocToTeam.add(tokenAllocToMM);
+        balances[marketingAddress] = tokenAllocToMM;
+        balances[vestingContractAddress] = tokenAllocToTeam;
 
-        allocatedTokens = balances[crowdsaleAddress].add(balances[vestingContractAddress]);
-
+        allocatedTokens = balances[marketingAddress];
     }  
 
     function transferOwnership(address _newFounderAddress) public returns(bool) {
@@ -168,6 +185,10 @@ contract UberToken is BasicToken {
         OwnershipTransfered(now,_newFounderAddress);
         return true;
     }
+
+    /**
+     * @dev use to burn the token
+     */
 
     function burn() public returns(bool) {
         require(msg.sender == crowdsaleAddress);
@@ -221,6 +242,11 @@ contract UberCrowdsale {
         _;
     }
 
+    /**
+     * @dev `fundTransfer` use to trasfer the fund from contract to beneficiary
+     * @param _fund Amount of wei to transfer 
+     */
+
     function fundTransfer(uint256 _fund) internal returns(bool) {
         beneficiaryAddress.transfer(_fund);
         return true;
@@ -230,14 +256,20 @@ contract UberCrowdsale {
         buyTokens(msg.sender);
     }
 
+    // Constructor
+
     function UberCrowdsale(address _operatorAddress, address _beneficiaryAddress) public {
         operatorAddress = _operatorAddress;
         beneficiaryAddress = _beneficiaryAddress;
-        startPresaleDate = now;
-        endPresaleDate = now + 4 weeks;
+        startPresaleDate = 1519862400;          
+        endPresaleDate = startPresaleDate + 4 weeks;
         isPresaleActive = !isPresaleActive;
     } 
 
+    /**
+     * @dev `setTokenAddress` use to add the token address
+     * @param _tokenAddress  Address of the token
+     */
     function setTokenAddress(address _tokenAddress) onlyOperator public returns (bool) {
         require(_tokenAddress != address(0));
         require(isTokenSet == false);
@@ -246,6 +278,10 @@ contract UberCrowdsale {
         isTokenSet = !isTokenSet;
         return true;
     }
+
+    /**
+     * @dev `endPresale` Function used to end the presale
+     */
 
     function endPresale() onlyOperator public {
         require(isTokenSet == true);
@@ -256,12 +292,21 @@ contract UberCrowdsale {
         isGapActive = !isGapActive;
     }
 
+    /**
+     * @dev use to active the crowdsale
+     */
+
     function activeCrowdsale() onlyOperator public {
         require(isGapActive == true);
         startCrowdsaleDate = now;
         endCrowdsaleDate = now + 4 weeks;
         isCrowdsaleActive = !isCrowdsaleActive;
     }
+
+    /**
+     * @dev used to add the minimum investment figure
+     * @param _newMinInvestment minimum investment
+     */
 
     function changeMinInvestment(uint256 _newMinInvestment) onlyOperator public {
        if (getState() == State.Presale) {
@@ -272,6 +317,10 @@ contract UberCrowdsale {
        }
         
     }
+
+    /**
+     * @dev get function to get the state of the contract
+     */
 
     function getState() view public returns(State) {
         if (isPresaleActive == true) {
@@ -288,6 +337,9 @@ contract UberCrowdsale {
         return State.Finish;
     }
 
+    /**
+     * @dev use to get the bonus of the week
+     */
     function getBonus() view public returns(uint16) {
         if (getState() == State.Presale) {
             if (now >= startPresaleDate && now <= startPresaleDate + 1 weeks) {
@@ -311,7 +363,10 @@ contract UberCrowdsale {
         }
     }
 
-   
+   /**
+    * @dev It is used to buy the token 
+    * @param _investorAddress Address of the constructor
+    */
 
     function buyTokens(address _investorAddress)
     public 
@@ -344,6 +399,11 @@ contract UberCrowdsale {
         }  
     } 
 
+    /**
+     * @dev `getTokenAmount` use to get the tokens amount corresponds to the invested money
+     * @param _investedAmount Amount need to be invested
+     */
+
     function getTokenAmount(uint256 _investedAmount) view public returns (uint256) {
         uint256 bonus = uint256(getBonus());
         uint256 withoutBonusAmount = uint256(tokenRate).mul(_investedAmount);
@@ -351,12 +411,24 @@ contract UberCrowdsale {
         return bonusAmount;
     }
 
-    function tokenSold(address _investorAddress, uint256 amount) private returns (bool) {
-        require(token.transfer(_investorAddress, amount));
+    /**
+     * @dev common function use in the buyTokens function
+     * @param _investorAddress Address of the investor
+     * @param _amount Amount the investor invested
+     */
+
+    function tokenSold(address _investorAddress, uint256 _amount) private returns (bool) {
+        require(token.transfer(_investorAddress, _amount));
         ethRaised = ethRaised.add(msg.value);
-        TokenBought(_investorAddress, amount);
+        TokenBought(_investorAddress, _amount);
         return true;
     }
+
+    /**
+     * @dev `endCrowdfund` Use to end the crowdfund
+     * @param _decide parameter to decide the operation
+     * @param _newCrowdsale address of the new crowdsale contract
+     */
 
     function endCrowdfund(bool _decide, address _newCrowdsale) onlyOperator public returns(bool) {
         require(now > endCrowdsaleDate);

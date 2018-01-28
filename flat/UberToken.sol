@@ -13,6 +13,12 @@ contract ERC20 {
 }
 
 /**
+ *  SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol/>
+ *  Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *  Released under the MIT License (MIT)
+ */
+
+/**
  * @title SafeMath
  * @dev Math operations with safety checks that throw on error
  */
@@ -41,6 +47,13 @@ library SafeMath {
     return c;
   }
 }
+
+/**
+ *  SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/token/BasicToken.sol/>
+ *  Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *  Released under the MIT License (MIT)
+ */
+
 
 contract BasicToken is ERC20 {
     using SafeMath for uint256;
@@ -143,23 +156,27 @@ contract UberToken is BasicToken {
     address public crowdsaleAddress;
     address public vestingContractAddress;
     address public founderAddress;
+    address public marketingAddress;
 
     event OwnershipTransfered(uint256 _timestamp, address _newFounderAddress);
 
-    function UberToken(address _crowdsaleAddress, address _vestingContract, address _founderAddress) public {
+    function UberToken(address _crowdsaleAddress, address _vestingContract, address _founderAddress, address _marketingAddress) public {
         tokenAllocToTeam = 13500000 * 10 ** 18;                              //10 % Allocation
         tokenAllocToCrowdsale = 114750000 * 10 ** 18;                        // 85 % Allocation 
         tokenAllocToMM = 6750000 * 10 ** 18;                                 // 5 % Allocation
 
+        // Address 
         crowdsaleAddress = _crowdsaleAddress;
         vestingContractAddress = _vestingContract;
         founderAddress = _founderAddress;
+        marketingAddress = _marketingAddress;
 
+        // Allocations
         balances[crowdsaleAddress] = tokenAllocToCrowdsale;
-        balances[vestingContractAddress] = tokenAllocToTeam.add(tokenAllocToMM);
+        balances[marketingAddress] = tokenAllocToMM;
+        balances[vestingContractAddress] = tokenAllocToTeam;
 
-        allocatedTokens = balances[crowdsaleAddress].add(balances[vestingContractAddress]);
-
+        allocatedTokens = balances[marketingAddress];
     }  
 
     function transferOwnership(address _newFounderAddress) public returns(bool) {
@@ -168,6 +185,10 @@ contract UberToken is BasicToken {
         OwnershipTransfered(now,_newFounderAddress);
         return true;
     }
+
+    /**
+     * @dev use to burn the token
+     */
 
     function burn() public returns(bool) {
         require(msg.sender == crowdsaleAddress);

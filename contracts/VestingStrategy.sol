@@ -28,6 +28,7 @@ contract VestingStrategy {
         _;
     }
 
+    // Constructor
     function VestingStrategy(address _teamAddress) public {
         teamAddress = _teamAddress;
         founderAddress = msg.sender;
@@ -38,6 +39,11 @@ contract VestingStrategy {
         vestingPeriod = now + 2 * 365 days;   // 3 months for crowdsale end + 2 years of vesting
     }
 
+    /**
+     * @dev `setTokenAddress` use to add the token address
+     * @param _tokenAddress Address of the token 
+     */
+
     function setTokenAddress(address _tokenAddress) onlyFounder public returns (bool) {
         require(_tokenAddress != address(0));
         require(isTokenSet == false);
@@ -46,6 +52,10 @@ contract VestingStrategy {
         isTokenSet = !isTokenSet;
         return true;
     }
+
+    /**
+     * `releaseTokenToTeam` use to release the tokens according to vesting strategy
+     */
 
     function releaseTokenToTeam() onlyFounder public returns(bool) {
         require(isTokenSet == true);

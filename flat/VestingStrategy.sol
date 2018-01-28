@@ -1,6 +1,12 @@
 pragma solidity ^0.4.18;
 
 /**
+ *  SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/math/SafeMath.sol/>
+ *  Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *  Released under the MIT License (MIT)
+ */
+
+/**
  * @title SafeMath
  * @dev Math operations with safety checks that throw on error
  */
@@ -41,6 +47,13 @@ contract ERC20 {
   event Approval(address indexed owner, address indexed spender, uint256 value);
     
 }
+
+/**
+ *  SafeMath <https://github.com/OpenZeppelin/zeppelin-solidity/blob/master/contracts/token/BasicToken.sol/>
+ *  Copyright (c) 2016 Smart Contract Solutions, Inc.
+ *  Released under the MIT License (MIT)
+ */
+
 
 contract BasicToken is ERC20 {
     using SafeMath for uint256;
@@ -143,23 +156,27 @@ contract UberToken is BasicToken {
     address public crowdsaleAddress;
     address public vestingContractAddress;
     address public founderAddress;
+    address public marketingAddress;
 
     event OwnershipTransfered(uint256 _timestamp, address _newFounderAddress);
 
-    function UberToken(address _crowdsaleAddress, address _vestingContract, address _founderAddress) public {
+    function UberToken(address _crowdsaleAddress, address _vestingContract, address _founderAddress, address _marketingAddress) public {
         tokenAllocToTeam = 13500000 * 10 ** 18;                              //10 % Allocation
         tokenAllocToCrowdsale = 114750000 * 10 ** 18;                        // 85 % Allocation 
         tokenAllocToMM = 6750000 * 10 ** 18;                                 // 5 % Allocation
 
+        // Address 
         crowdsaleAddress = _crowdsaleAddress;
         vestingContractAddress = _vestingContract;
         founderAddress = _founderAddress;
+        marketingAddress = _marketingAddress;
 
+        // Allocations
         balances[crowdsaleAddress] = tokenAllocToCrowdsale;
-        balances[vestingContractAddress] = tokenAllocToTeam.add(tokenAllocToMM);
+        balances[marketingAddress] = tokenAllocToMM;
+        balances[vestingContractAddress] = tokenAllocToTeam;
 
-        allocatedTokens = balances[crowdsaleAddress].add(balances[vestingContractAddress]);
-
+        allocatedTokens = balances[marketingAddress];
     }  
 
     function transferOwnership(address _newFounderAddress) public returns(bool) {
@@ -168,6 +185,10 @@ contract UberToken is BasicToken {
         OwnershipTransfered(now,_newFounderAddress);
         return true;
     }
+
+    /**
+     * @dev use to burn the token
+     */
 
     function burn() public returns(bool) {
         require(msg.sender == crowdsaleAddress);
@@ -188,7 +209,6 @@ contract VestingStrategy {
     // Variable declaration
     address public founderAddress;
     address public teamAddress;
-    address public marketingAddress;
     address public tokenAddress;
 
     uint256 public firstSlotTimestamp;
@@ -206,8 +226,8 @@ contract VestingStrategy {
         _;
     }
 
-    function VestingStrategy(address _teamAddress, address _marketingAddress) public {
-        marketingAddress = _marketingAddress;
+    // Constructor
+    function VestingStrategy(address _teamAddress) public {
         teamAddress = _teamAddress;
         founderAddress = msg.sender;
         firstSlotTimestamp = now + 6 * 30 days;
@@ -217,6 +237,11 @@ contract VestingStrategy {
         vestingPeriod = now + 2 * 365 days;   // 3 months for crowdsale end + 2 years of vesting
     }
 
+    /**
+     * @dev `setTokenAddress` use to add the token address
+     * @param _tokenAddress Address of the token 
+     */
+
     function setTokenAddress(address _tokenAddress) onlyFounder public returns (bool) {
         require(_tokenAddress != address(0));
         require(isTokenSet == false);
@@ -225,6 +250,10 @@ contract VestingStrategy {
         isTokenSet = !isTokenSet;
         return true;
     }
+
+    /**
+     * `releaseTokenToTeam` use to release the tokens according to vesting strategy
+     */
 
     function releaseTokenToTeam() onlyFounder public returns(bool) {
         require(isTokenSet == true);
@@ -268,15 +297,6 @@ contract VestingStrategy {
             return false;
         }
         return true;
-    }
-
-    function releaseTokenToMarketing() onlyFounder public returns(bool) {
-        require(isTokenSet == true);
-        if (now >= firstSlotTimestamp) {
-            require(token.transfer(marketingAddress, (slotAmount * 2)));
-            return true;
-        }
-        return false;
     }
 
 }

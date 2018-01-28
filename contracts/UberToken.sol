@@ -53,6 +53,10 @@ contract UberToken is BasicToken {
         return true;
     }
 
+    /**
+     * @dev use to burn the token
+     */
+
     function burn() public returns(bool) {
         require(msg.sender == crowdsaleAddress);
         uint256 burnAmount = balances[crowdsaleAddress];
