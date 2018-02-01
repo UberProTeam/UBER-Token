@@ -63,7 +63,7 @@ contract UberCrowdsale {
     function UberCrowdsale(address _operatorAddress, address _beneficiaryAddress) public {
         operatorAddress = _operatorAddress;
         beneficiaryAddress = _beneficiaryAddress;
-        startPresaleDate = 1519862400;          
+        startPresaleDate = 1520467200;          
         endPresaleDate = startPresaleDate + 4 weeks;
         isPresaleActive = !isPresaleActive;
     } 

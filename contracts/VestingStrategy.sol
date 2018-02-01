@@ -32,11 +32,11 @@ contract VestingStrategy {
     function VestingStrategy(address _teamAddress) public {
         teamAddress = _teamAddress;
         founderAddress = msg.sender;
-        firstSlotTimestamp = 1519862400 + 6 * 30 days;
+        firstSlotTimestamp = 1520467200 + 6 * 30 days;
         secondSlotTimestamp = firstSlotTimestamp + 6 * 30 days;
         thirdSlotTimestamp = secondSlotTimestamp + 6 * 30 days;
         finalSlotTimestamp = thirdSlotTimestamp + 6 * 30 days + 10 days; // To cover the month days difference
-        vestingPeriod = 1519862400 + 2 * 365 days;   // 3 months for crowdsale end + 2 years of vesting
+        vestingPeriod = 1520467200 + 2 * 365 days;   // 3 months for crowdsale end + 2 years of vesting
     }
 
     /**
