@@ -8,30 +8,31 @@ contract UberCrowdsale {
     using SafeMath for uint256;
 
     UberToken public token;
-    uint32 public tokenRate = 1000;
-    uint256 public MIN_PRESALE = 1 ether;
-    uint256 public MIN_CROWDSALE = 100 finney;
-    uint256 public MAX_INVESTMENT_GOAL = 100000 ether;
-    uint256 public ethRaised;
-    uint256 public presaleAllotment = 6750000 * 10 ** 18;
-    uint256 public crowdsaleAllotment = 108000000 * 10 ** 18;
-    uint256 public soldPresaleToken = 0;
-    uint256 public soldCrowdsaleToken = 0;
+    uint32 public tokenRate = 1000;                                                         // Rate of the token 1 ETH = 1000 UBER
+    uint256 public MIN_PRESALE = 1 ether;                                                   // Minimum investment for presale
+    uint256 public MIN_CROWDSALE = 100 finney;                                              // Minimum investment for crowdsale
+    uint256 public MAX_INVESTMENT_GOAL = 100000 ether;                                      // Maximum investment goal         
+    uint256 public ethRaised;                                                               // Flag variable to track the amount of ether raised
+    uint256 public presaleAllotment = 6750000 * 10 ** 18;                                   // Token allotment for presale 
+    uint256 public crowdsaleAllotment = 108000000 * 10 ** 18;                               // Token allotment for crowdsale
+    uint256 public soldPresaleToken = 0;                                                    // Falg variable to track the amount of token sold in presale
+    uint256 public soldCrowdsaleToken = 0;                                                  // Falg variable to track the amount of token sold in crowdsale
 
-    uint256 public startPresaleDate;
-    uint256 public endPresaleDate;
-    uint256 public startCrowdsaleDate;
-    uint256 public endCrowdsaleDate;
+    uint256 public startPresaleDate;                                                        // Unix timestamp at presale get started
+    uint256 public endPresaleDate;                                                          // Unix timestamp at presale get ended
+    uint256 public startCrowdsaleDate;                                                      // Unix timestamp at presale get started
+    uint256 public endCrowdsaleDate;                                                        // Unix timestamp at presale get ended
 
-    bool private isPresaleActive = false;
+    bool private isPresaleActive = false;                                                   
     bool private isCrowdsaleActive = false;
     bool private isGapActive = false;
     bool public isTokenSet = false;
 
-    address public operatorAddress;
-    address public beneficiaryAddress;
-    address public tokenAddress;
+    address public operatorAddress;                                                         // Address who can operate all admin functionality of the crowdsale contract
+    address public beneficiaryAddress;                                                      // Address where all invested ethers get transfered
+    address public tokenAddress;                                                            // Address of the token used as the ROI
 
+    // Notifications
     event TokenBought(address indexed _investor, uint256 _token);
     event BurnToken(uint256 _amount, uint256 _timestamp);
     event RemainingTokenTransfered(address indexed _newCrowdsale, uint256 _timestamp);
