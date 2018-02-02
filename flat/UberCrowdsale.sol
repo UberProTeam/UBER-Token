@@ -141,22 +141,22 @@ contract UberToken is BasicToken {
     using SafeMath for uint256;
 
     // token Variable declaration
-    string public name = "Uber Token";
-    string public symbol = "UBER";
-    uint16 public decimals = 18;
-    uint256 public totalSupply = 135000000 * 10 ** 18;
+    string public name = "Uber Token";                                          // Name of the token
+    string public symbol = "UBER";                                              // Symbol of the token
+    uint16 public decimals = 18;                                                // Decimals for the token
+    uint256 public totalSupply = 135000000 * 10 ** 18;                          // Total generated pre-mined tokens
 
     // distribution variables
-    uint256 public tokenAllocToTeam;
-    uint256 public tokenAllocToCrowdsale;
-    uint256 public tokenAllocToMM;
-    uint256 public allocatedTokens;
+    uint256 public tokenAllocToTeam;                                            // Token allocated to team    
+    uint256 public tokenAllocToCrowdsale;                                       // Token allocated to crowdsale contract    
+    uint256 public tokenAllocToMM;                                              // Token allocation for in marketing and media 
+    uint256 public allocatedTokens;                                             // Variable to track to the allocated tokens 
 
     // addresses
-    address public crowdsaleAddress;
-    address public vestingContractAddress;
-    address public founderAddress;
-    address public marketingAddress;
+    address public crowdsaleAddress;                                            // Address of the crowdsale contract
+    address public vestingContractAddress;                                      // Address of the vesting contract to hold the tokens of the team
+    address public founderAddress;                                              // Address of th founder which controls the admin function of the token contract
+    address public marketingAddress;                                            // Address which hold the marketing tokens
 
     event OwnershipTransfered(uint256 _timestamp, address _newFounderAddress);
 
@@ -179,6 +179,12 @@ contract UberToken is BasicToken {
         allocatedTokens = balances[marketingAddress];
     }  
 
+    /**
+     * @dev use to transfer the ownership of the contract address to other
+     * @param _newFounderAddress Address of the new founder
+     * @return bool
+     */
+    
     function transferOwnership(address _newFounderAddress) public returns(bool) {
         require(msg.sender == founderAddress);
         founderAddress = _newFounderAddress;
@@ -187,7 +193,8 @@ contract UberToken is BasicToken {
     }
 
     /**
-     * @dev use to burn the token
+     * @dev use to burn the tokens after the completion of the crowdsale
+     * @return bool
      */
 
     function burn() public returns(bool) {
@@ -206,30 +213,31 @@ contract UberCrowdsale {
     using SafeMath for uint256;
 
     UberToken public token;
-    uint32 public tokenRate = 1000;
-    uint256 public MIN_PRESALE = 1 ether;
-    uint256 public MIN_CROWDSALE = 100 finney;
-    uint256 public MAX_INVESTMENT_GOAL = 100000 ether;
-    uint256 public ethRaised;
-    uint256 public presaleAllotment = 6750000 * 10 ** 18;
-    uint256 public crowdsaleAllotment = 108000000 * 10 ** 18;
-    uint256 public soldPresaleToken = 0;
-    uint256 public soldCrowdsaleToken = 0;
+    uint32 public tokenRate = 1000;                                                         // Rate of the token 1 ETH = 1000 UBER
+    uint256 public MIN_PRESALE = 1 ether;                                                   // Minimum investment for presale
+    uint256 public MIN_CROWDSALE = 100 finney;                                              // Minimum investment for crowdsale
+    uint256 public MAX_INVESTMENT_GOAL = 100000 ether;                                      // Maximum investment goal         
+    uint256 public ethRaised;                                                               // Flag variable to track the amount of ether raised
+    uint256 public presaleAllotment = 6750000 * 10 ** 18;                                   // Token allotment for presale 
+    uint256 public crowdsaleAllotment = 108000000 * 10 ** 18;                               // Token allotment for crowdsale
+    uint256 public soldPresaleToken = 0;                                                    // Falg variable to track the amount of token sold in presale
+    uint256 public soldCrowdsaleToken = 0;                                                  // Falg variable to track the amount of token sold in crowdsale
 
-    uint256 public startPresaleDate;
-    uint256 public endPresaleDate;
-    uint256 public startCrowdsaleDate;
-    uint256 public endCrowdsaleDate;
+    uint256 public startPresaleDate;                                                        // Unix timestamp at presale get started
+    uint256 public endPresaleDate;                                                          // Unix timestamp at presale get ended
+    uint256 public startCrowdsaleDate;                                                      // Unix timestamp at presale get started
+    uint256 public endCrowdsaleDate;                                                        // Unix timestamp at presale get ended
 
-    bool private isPresaleActive = false;
+    bool private isPresaleActive = false;                                                   
     bool private isCrowdsaleActive = false;
     bool private isGapActive = false;
     bool public isTokenSet = false;
 
-    address public operatorAddress;
-    address public beneficiaryAddress;
-    address public tokenAddress;
+    address public operatorAddress;                                                         // Address who can operate all admin functionality of the crowdsale contract
+    address public beneficiaryAddress;                                                      // Address where all invested ethers get transfered
+    address public tokenAddress;                                                            // Address of the token used as the ROI
 
+    // Notifications
     event TokenBought(address indexed _investor, uint256 _token);
     event BurnToken(uint256 _amount, uint256 _timestamp);
     event RemainingTokenTransfered(address indexed _newCrowdsale, uint256 _timestamp);

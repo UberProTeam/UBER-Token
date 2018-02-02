@@ -141,22 +141,22 @@ contract UberToken is BasicToken {
     using SafeMath for uint256;
 
     // token Variable declaration
-    string public name = "Uber Token";
-    string public symbol = "UBER";
-    uint16 public decimals = 18;
-    uint256 public totalSupply = 135000000 * 10 ** 18;
+    string public name = "Uber Token";                                          // Name of the token
+    string public symbol = "UBER";                                              // Symbol of the token
+    uint16 public decimals = 18;                                                // Decimals for the token
+    uint256 public totalSupply = 135000000 * 10 ** 18;                          // Total generated pre-mined tokens
 
     // distribution variables
-    uint256 public tokenAllocToTeam;
-    uint256 public tokenAllocToCrowdsale;
-    uint256 public tokenAllocToMM;
-    uint256 public allocatedTokens;
+    uint256 public tokenAllocToTeam;                                            // Token allocated to team    
+    uint256 public tokenAllocToCrowdsale;                                       // Token allocated to crowdsale contract    
+    uint256 public tokenAllocToMM;                                              // Token allocation for in marketing and media 
+    uint256 public allocatedTokens;                                             // Variable to track to the allocated tokens 
 
     // addresses
-    address public crowdsaleAddress;
-    address public vestingContractAddress;
-    address public founderAddress;
-    address public marketingAddress;
+    address public crowdsaleAddress;                                            // Address of the crowdsale contract
+    address public vestingContractAddress;                                      // Address of the vesting contract to hold the tokens of the team
+    address public founderAddress;                                              // Address of th founder which controls the admin function of the token contract
+    address public marketingAddress;                                            // Address which hold the marketing tokens
 
     event OwnershipTransfered(uint256 _timestamp, address _newFounderAddress);
 
@@ -179,6 +179,12 @@ contract UberToken is BasicToken {
         allocatedTokens = balances[marketingAddress];
     }  
 
+    /**
+     * @dev use to transfer the ownership of the contract address to other
+     * @param _newFounderAddress Address of the new founder
+     * @return bool
+     */
+    
     function transferOwnership(address _newFounderAddress) public returns(bool) {
         require(msg.sender == founderAddress);
         founderAddress = _newFounderAddress;
@@ -187,7 +193,8 @@ contract UberToken is BasicToken {
     }
 
     /**
-     * @dev use to burn the token
+     * @dev use to burn the tokens after the completion of the crowdsale
+     * @return bool
      */
 
     function burn() public returns(bool) {
